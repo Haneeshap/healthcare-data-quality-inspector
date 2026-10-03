@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Dataset {
+  id         Int      @id @default(autoincrement())
+  filename   String
+  uploadedAt DateTime @default(now())
+  totalRows  Int      @default(0)
+
+  records DataRecord[]
+  issues  DataIssue[]
+}
+
+model DataRecord {
+  id               Int     @id @default(autoincrement())
+  datasetId        Int
+  recordIdentifier String?
+  recordData       String
+
+  dataset Dataset     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  issues  DataIssue[]
+
+  @@index([datasetId, recordIdentifier])
+}
+
+model DataIssue {
+  id                  Int     @id @default(autoincrement())
+  datasetId           Int
+  recordId            Int?
+  rowNumber           Int?
+  field               String?
+  issueType           String
+  severity            String  @default("ERROR")
+  description         String
+  suggestedCorrection String?
+  status              String  @default("OPEN")
+
+  dataset Dataset     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  record  DataRecord? @relation(fields: [recordId], references: [id], onDelete: SetNull)
+
+  @@index([datasetId, status])
+}

@@ -1,0 +1,9 @@
+﻿patient_id,appointment_id,appointment_date,patient_email,appointment_status
+P001,A001,2026-10-03,ava@example.com,scheduled
+P002,A002,2026-10-04,liam@example.com,completed
+P003,A003,2026-10-05,not-an-email,scheduled
+P004,A004,2026-02-30,noah@example.com,scheduled
+P005,A005,2026-10-07,emma@example.com,unknown
+,A006,2026-10-08,mia@example.com,scheduled
+P007,A007,2026-10-09,oliver@example.com,scheduled
+P008,A007,2026-10-10,amelia@example.com,completed
