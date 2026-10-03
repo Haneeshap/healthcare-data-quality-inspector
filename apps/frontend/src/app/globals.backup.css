@@ -1,6 +1,6 @@
 ﻿
 
-
+@import "tailwindcss";
 
 :root {
   --background: #f6f8fb;
@@ -220,6 +220,5 @@ td code { color: #536eae; background: #f1f4fc; padding: 4px 6px; border-radius: 
   .issues-heading { gap: 10px; align-items: flex-start; }
   .export-button { white-space: nowrap; }
 }
-
 
 

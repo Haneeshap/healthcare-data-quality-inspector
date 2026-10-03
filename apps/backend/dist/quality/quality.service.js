@@ -28,10 +28,23 @@ function isValidEmail(value) {
 export function analyzeRecords(records) {
     const issues = [];
     const seenAppointmentIds = new Set();
+    const availableFields = new Set(Object.keys(records[0] ?? {}).map((key) => key.trim().toLowerCase()));
+    for (const field of REQUIRED_FIELDS) {
+        if (!availableFields.has(field)) {
+            issues.push({
+                rowNumber: null,
+                field,
+                issueType: 'MISSING_COLUMN',
+                severity: 'ERROR',
+                description: `The required column '${field}' is missing from the CSV header.`,
+                suggestedCorrection: `Add the '${field}' column to the CSV file.`,
+            });
+        }
+    }
     records.forEach((record, index) => {
         const rowNumber = index + 2;
         for (const field of REQUIRED_FIELDS) {
-            if (!getValue(record, field)) {
+            if (availableFields.has(field) && !getValue(record, field)) {
                 issues.push({
                     rowNumber,
                     field,
@@ -65,8 +78,7 @@ export function analyzeRecords(records) {
             });
         }
         const status = getValue(record, 'appointment_status').toLowerCase();
-        if (status &&
-            !VALID_STATUSES.includes(status)) {
+        if (status && !VALID_STATUSES.includes(status)) {
             issues.push({
                 rowNumber,
                 field: 'appointment_status',

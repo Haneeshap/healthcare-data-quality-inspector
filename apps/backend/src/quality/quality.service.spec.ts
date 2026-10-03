@@ -1,4 +1,5 @@
-﻿import { describe, expect, it } from 'vitest';
+﻿
+import { describe, expect, it } from 'vitest';
 import { analyzeRecords, type CsvRecord } from './quality.service.js';
 
 const validRecord: CsvRecord = {
@@ -27,6 +28,36 @@ describe('analyzeRecords', () => {
         issue.field === 'patient_id' &&
         issue.issueType === 'MISSING_VALUE',
     )).toBe(true);
+  });
+
+  it('should detect missing required columns only once per column', () => {
+    const records: CsvRecord[] = [
+      {
+        patient_name: 'John Doe',
+        patient_email: 'john@example.com',
+      },
+      {
+        patient_name: 'Jane Doe',
+        patient_email: 'jane@example.com',
+      },
+    ];
+
+    const issues = analyzeRecords(records);
+
+    const missingColumns = issues.filter(
+      (issue) => issue.issueType === 'MISSING_COLUMN',
+    );
+
+    expect(missingColumns).toHaveLength(4);
+    expect(missingColumns.every((issue) => issue.rowNumber === null)).toBe(true);
+  });
+
+  it('should not report missing columns when all required headers exist', () => {
+    const issues = analyzeRecords([validRecord]);
+
+    expect(
+      issues.some((issue) => issue.issueType === 'MISSING_COLUMN'),
+    ).toBe(false);
   });
 
   it('should detect an invalid email', () => {

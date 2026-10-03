@@ -57,8 +57,10 @@ export class DatasetService {
       }
 
       for (const issue of issues) {
-        const recordIndex = issue.rowNumber - 2;
-        const recordId = recordIds[recordIndex] ?? null;
+        const recordId =
+  issue.rowNumber === null
+    ? null
+    : recordIds[issue.rowNumber - 2] ?? null;
 
         await transaction.dataIssue.create({
           data: {
