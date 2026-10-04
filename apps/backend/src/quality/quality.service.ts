@@ -17,6 +17,42 @@ const REQUIRED_FIELDS = [
   'appointment_status',
 ];
 
+export function calculateQualityScore(
+  totalRows: number,
+  issues: {
+    rowNumber: number | null;
+    issueType: string;
+        severity: string;
+  }[],
+): number {
+  if (totalRows <= 0) {
+    return 0;
+  }
+
+  if (
+    issues.some(
+      (issue) =>
+        issue.issueType === 'MISSING_COLUMN' &&
+        issue.severity === 'ERROR',
+    )
+  ) {
+    return 0;
+  }
+
+  const affectedRows = new Set(
+    issues
+      .filter(
+        (issue) =>
+          issue.severity === 'ERROR' && issue.rowNumber !== null,
+      )
+      .map((issue) => issue.rowNumber),
+  );
+
+  const recordsWithoutErrors = totalRows - affectedRows.size;
+
+  return Math.round((recordsWithoutErrors / totalRows) * 100);
+}
+
 const VALID_STATUSES = [
   'scheduled',
   'completed',

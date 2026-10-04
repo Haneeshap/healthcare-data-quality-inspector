@@ -1,11 +1,15 @@
-﻿import {
+import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { parseCsv } from './csv-parser.service.js';
-import { analyzeRecords } from './quality.service.js';
+import {
+  analyzeRecords,
+  calculateQualityScore,
+} from './quality.service.js';
+import { profileRecords } from './profiling.service.js';
 
 @Injectable()
 export class DatasetService {
@@ -87,38 +91,102 @@ export class DatasetService {
     });
   }
   async findAll() {
-    return this.prisma.dataset.findMany({
-      orderBy: {
-        uploadedAt: 'desc',
-      },
-      include: {
-        _count: {
-          select: {
-            records: true,
-            issues: true,
-          },
+  const datasets = await this.prisma.dataset.findMany({
+    orderBy: {
+      uploadedAt: 'desc',
+    },
+    include: {
+      _count: {
+        select: {
+          records: true,
+          issues: true,
         },
       },
-    });
+      issues: {
+        select: {
+          rowNumber: true,
+          issueType: true,
+          severity: true,
+        },
+      },
+    },
+  });
+
+      return datasets.map((dataset) => ({
+      id: dataset.id,
+      filename: dataset.filename,
+      uploadedAt: dataset.uploadedAt,
+      totalRows: dataset.totalRows,
+      _count: dataset._count,
+      qualityScore: calculateQualityScore(dataset.totalRows, dataset.issues),
+    }));
   }
 
   async findOne(id: number) {
-    const dataset = await this.prisma.dataset.findUnique({
-      where: { id },
-      include: {
-        records: true,
-        issues: {
-          orderBy: {
-            rowNumber: 'asc',
-          },
+  const dataset = await this.prisma.dataset.findUnique({
+    where: { id },
+    include: {
+      records: true,
+      issues: {
+        orderBy: {
+          rowNumber: 'asc',
         },
+      },
+    },
+  });
+
+  if (!dataset) {
+    throw new NotFoundException(`Dataset ${id} was not found.`);
+  }
+
+    const parsedRecords = dataset.records.map((record) => {
+      try {
+        return JSON.parse(record.recordData) as Record<string, string>;
+      } catch {
+        return {};
+      }
+    });
+
+    return {
+      ...dataset,
+      qualityScore: calculateQualityScore(dataset.totalRows, dataset.issues),
+      columnProfiles: profileRecords(parsedRecords),
+    };
+  }
+
+  async updateIssueStatus(
+    datasetId: number,
+    issueId: number,
+    status: string,
+  ) {
+    const allowedStatuses = ['OPEN', 'RESOLVED', 'IGNORED'];
+
+    if (!allowedStatuses.includes(status)) {
+      throw new BadRequestException(
+        'Status must be OPEN, RESOLVED, or IGNORED.',
+      );
+    }
+
+    const issue = await this.prisma.dataIssue.findFirst({
+      where: {
+        id: issueId,
+        datasetId,
       },
     });
 
-    if (!dataset) {
-      throw new NotFoundException(`Dataset ${id} was not found.`);
+    if (!issue) {
+      throw new NotFoundException(
+        `Issue ${issueId} was not found in dataset ${datasetId}.`,
+      );
     }
 
-    return dataset;
+    return this.prisma.dataIssue.update({
+      where: {
+        id: issueId,
+      },
+      data: {
+        status,
+      },
+    });
   }
 }

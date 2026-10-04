@@ -1,6 +1,9 @@
 ﻿
 import { describe, expect, it } from 'vitest';
-import { analyzeRecords, type CsvRecord } from './quality.service.js';
+import {
+  analyzeRecords,
+  calculateQualityScore,
+} from './quality.service.js';
 
 const validRecord: CsvRecord = {
   patient_id: 'P001',
@@ -110,5 +113,38 @@ describe('analyzeRecords', () => {
     expect(issues.some(
       (issue) => issue.issueType === 'DUPLICATE_RECORD',
     )).toBe(true);
+  });
+});
+
+describe('calculateQualityScore', () => {
+  it('should return 100 when there are no errors', () => {
+    expect(calculateQualityScore(8, [])).toBe(100);
+  });
+
+  it('should count each affected record only once', () => {
+    const issues = [
+      { rowNumber: 2, issueType: 'MISSING_VALUE', severity: 'ERROR' as const },
+      { rowNumber: 2, issueType: 'INVALID_EMAIL', severity: 'ERROR' as const },
+      { rowNumber: 5, issueType: 'INVALID_DATE', severity: 'ERROR' as const },
+    ];
+
+    expect(calculateQualityScore(8, issues)).toBe(75);
+  });
+
+  it('should ignore warnings when calculating the score', () => {
+    const issues = [
+      { rowNumber: 3, issueType: 'DUPLICATE_RECORD', severity: 'WARNING' as const },
+    ];
+
+    expect(calculateQualityScore(8, issues)).toBe(100);
+  });
+
+  it('should return 0 when a required column is missing or the dataset is empty', () => {
+    const issues = [
+      { rowNumber: null, issueType: 'MISSING_COLUMN', severity: 'ERROR' as const },
+    ];
+
+    expect(calculateQualityScore(8, issues)).toBe(0);
+    expect(calculateQualityScore(0, [])).toBe(0);
   });
 });

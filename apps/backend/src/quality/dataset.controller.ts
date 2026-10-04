@@ -1,9 +1,11 @@
-﻿import {
+import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -40,6 +42,7 @@ export class DatasetController {
       csvContent,
     );
   }
+
   @Get()
   async findAll() {
     return this.datasetService.findAll();
@@ -48,5 +51,18 @@ export class DatasetController {
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.datasetService.findOne(id);
+  }
+
+  @Patch(':datasetId/issues/:issueId/status')
+  async updateIssueStatus(
+    @Param('datasetId', ParseIntPipe) datasetId: number,
+    @Param('issueId', ParseIntPipe) issueId: number,
+    @Body('status') status: string,
+  ) {
+    return this.datasetService.updateIssueStatus(
+      datasetId,
+      issueId,
+      status,
+    );
   }
 }
