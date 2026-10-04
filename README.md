@@ -184,7 +184,7 @@ Notes:
 │   │   ├── prisma/
 │   │   │   ├── migrations/
 │   │   │   ├── schema.prisma
-│   │   │   └── dev.db  # local SQLite file; generated and intentionally ignored by git
+│   │   │   └── .env.example
 │   │   ├── src/
 │   │   │   ├── prisma/
 │   │   │   ├── quality/
@@ -192,7 +192,6 @@ Notes:
 │   │   │   ├── app.module.ts
 │   │   │   ├── app.service.ts
 │   │   │   └── main.ts
-│   │   ├── .env.example
 │   │   ├── .gitignore
 │   │   ├── package.json
 │   │   └── prisma.config.ts
@@ -204,7 +203,6 @@ Notes:
 │   ├── appointments.csv
 │   └── incomplete.csv
 ├── .gitignore
-├── PROJECT_MASTER_DOCUMENTATION.md
 ├── README.md
 └── docs/
 ```
@@ -215,7 +213,6 @@ The current backend exposes the following routes from `DatasetController` and th
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/` | Root endpoint returning `Hello World!`; this is a basic starter endpoint, not a comprehensive health check |
 | `POST` | `/datasets/upload` | Upload a CSV file, validate file type and size, parse CSV, run validation, and persist the dataset and findings |
 | `GET` | `/datasets` | List uploaded datasets and summary metadata |
 | `GET` | `/datasets/:id` | Return a dataset with its records, issue list, and column profiles |
@@ -365,20 +362,9 @@ The repository includes sample data under `sample-data/`:
 
 The included appointment sample is designed to reproduce the current rule set and demonstrates the expected detection behavior in the current app.
 
-## Current validation/test status
-
-As verified in the repository at the time of writing:
-
-- backend tests: 21/21 passing
-- backend build: successful
-- frontend build: successful
-- no generated dev database or dist artifacts are required in the repo itself
-
-These are runtime and build checks against the current source, not assumptions from the older project documentation.
-
 ## Privacy and healthcare-data boundary
 
-QualiCare is designed for local review of synthetic or controlled healthcare appointment data. It is not a production-grade healthcare platform and should not be treated as a compliant data-processing system for patient care or regulated clinical workflows.
+QualiCare is designed for local review of synthetic healthcare appointment data. It is not a production-grade healthcare platform and should not be treated as a compliant data-processing system for patient care or regulated clinical workflows.
 
 Important boundary notes:
 
