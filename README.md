@@ -141,10 +141,6 @@ This updates the persisted issue status in SQLite. It does not reparse, revalida
 
 In the current implementation, the UI includes the three status states and allows manual toggling. For readiness calculations, the code currently excludes `RESOLVED` issues from active readiness counts, while `IGNORED` remains in the active issue set unless adjusted in future code. This is the current behavior visible in the source, not a claim that ignored issues are automatically neutralized.
 
-## Screenshots
-
-There are no committed screenshots in the repository at the current state. If you are preparing a portfolio presentation, add screenshots of the dashboard overview, readiness view, column profile, and issue review table before publishing this project externally.
-
 ## Architecture
 
 The application is a small, local two-tier system:
